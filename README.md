@@ -1,35 +1,50 @@
-# frontend
+# React + TypeScript + Vite
 
-Código fonte da aplicação Web do usuário
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Possibilidades de implementação
+Currently, two official plugins are available:
 
-### Kotlin (Nativo)
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-Prós:
+## Expanding the ESLint configuration
 
-- Desempennho superior: aplicativos nativos geralmente oferecem melhor desempenho e uma experiência mais fluida.
-- Acesso total ao *hardware*: Acesso direto a APIs e recursos do dispositivo, como câmera, GPS etc.
-- Melhor integração: integração mais fácil com bibliotecas e *frameworks* específicos do Android.
-- Experiência do usuário: Interfaces podem ser otimizadas para seguir as diretrizes de *design* do Android.
+If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
 
-Contras:
+- Configure the top-level `parserOptions` property like this:
 
-- Tempo de desenvolvimento: o desenvolvimento pode ser mais demorado, especialmente se você precisar criar versões separadas para iOS e Android.
-- Recurso limitado: exige conhecimento específico de cada plataforma se você também quiser desenvolver para iOS.
-- Manutenção: cada plataforma pode exigir uma manutenção separada, aumentando o custo e o tempo.
+```js
+export default tseslint.config({
+  languageOptions: {
+    // other options...
+    parserOptions: {
+      project: ['./tsconfig.node.json', './tsconfig.app.json'],
+      tsconfigRootDir: import.meta.dirname,
+    },
+  },
+})
+```
 
-### React Native
+- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
+- Optionally add `...tseslint.configs.stylisticTypeChecked`
+- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
 
-Prós:
+```js
+// eslint.config.js
+import react from 'eslint-plugin-react'
 
-- Desenvolvimento rápido: permite compartilhamento de código entre plataformas, acelerando o tempo de desenvolvimento.
-- Desempenho aceitável: embora não tão rápido quanto o nativo, oferece bom desempenho para muitos aplicativos.
-- *Hot reloading*: Possibilidade de ver mudanças instantaneamente, facilitando o desenvolvimento.
-- Comunidade ativa: grande ecossistema e suporte da comunidade, com muitas bibliotecas e *plugins* disponíveis.
-
-Contras:
-
-- Desempenho: pode não ser tão rápido quanto o nativo, especialmente para aplicativos complexos ou com muitas animações.
-- Acesso limitado a APIs: pode haver limitações ao acessar APIs nativas ou a necessidade de usar *wrappers*.
-- Atualizações e compatibilidade: dependência de atualizações da biblioteca, que pode afetar a compatibilidade com novas versões do sistema operacional.
+export default tseslint.config({
+  // Set the react version
+  settings: { react: { version: '18.3' } },
+  plugins: {
+    // Add the react plugin
+    react,
+  },
+  rules: {
+    // other rules...
+    // Enable its recommended rules
+    ...react.configs.recommended.rules,
+    ...react.configs['jsx-runtime'].rules,
+  },
+})
+```
