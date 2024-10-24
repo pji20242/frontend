@@ -1,10 +1,10 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import 'leaflet/dist/leaflet.css'; // Importa os estilos do Leaflet
 
 // Definir a posição do marcador
-const position: [number, number] = [-23.55052, -46.633308];  // Exemplo: São Paulo
+const position: [number, number] = [-23.55052, -46.633308]; // Exemplo: São Paulo
 
 // Definir ícone customizado (opcional)
 const customIcon = new L.Icon({

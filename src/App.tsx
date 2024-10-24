@@ -1,11 +1,10 @@
 import React from 'react';
-import MyMap from './MyMap';  // Importando o componente de mapa
+import MyMap from './MyMap'; // Ajuste o caminho conforme necessário
 
 const App: React.FC = () => {
   return (
-    <div className="App">
-      <h1>Mapa com Leaflet em React</h1>
-      <MyMap />  {/* Componente do mapa */}
+    <div className="h-screen">
+      <MyMap />
     </div>
   );
 };
