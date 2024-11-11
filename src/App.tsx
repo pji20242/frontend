@@ -1,12 +1,12 @@
-import React from 'react';
-import MyMap from './MyMap'; // Ajuste o caminho conforme necessário
+import type React from "react";
+import MyMap from "./MyMap"; // Ajuste o caminho conforme necessário
 
 const App: React.FC = () => {
-  return (
-    <div className="h-screen">
-      <MyMap />
-    </div>
-  );
+	return (
+		<div className="h-screen">
+			<MyMap />
+		</div>
+	);
 };
 
 export default App;
