@@ -1,0 +1,7 @@
+{
+	"editor.defaultFormatter": "biomejs.biome",
+	"files.associations": {
+		"*.tsx": "typescriptreact",
+		"*.ts": "typescript"
+	}
+}
