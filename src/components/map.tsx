@@ -1,6 +1,5 @@
-import type React from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
+import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css"; // Importa os estilos do Leaflet
 
 // Definir a posição do marcador
@@ -14,7 +13,7 @@ const customIcon = new L.Icon({
 	popupAnchor: [-3, -76],
 });
 
-const MyMap: React.FC = () => {
+export default function DeviceMap() {
 	return (
 		<MapContainer
 			center={position}
@@ -34,4 +33,3 @@ const MyMap: React.FC = () => {
 	);
 };
 
-export default MyMap;
