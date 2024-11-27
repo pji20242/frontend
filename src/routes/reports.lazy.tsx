@@ -5,5 +5,11 @@ export const Route = createLazyFileRoute('/reports')({
 })
 
 function Reports() {
-  return <div>Hello "/reports"!</div>
+  return (
+    <div >
+      <h2 className='text-3xl mb-16'>Relatórios</h2>
+
+      lkfjsdkfsfjkd
+    </div>
+  )
 }

@@ -1,9 +1,15 @@
 import { createLazyFileRoute } from '@tanstack/react-router'
 
 export const Route = createLazyFileRoute('/cooperatives')({
-  component: Cooperatives,
+  component: RouteComponent,
 })
 
-function Cooperatives() {
-  return <div className="p-2">cooperatives</div>
+function RouteComponent() {
+  return (
+    <div >
+      <h2 className='text-3xl mb-16'>Cooperativas</h2>
+
+      lkfjsdkfsfjkd
+    </div>
+  )
 }

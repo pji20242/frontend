@@ -201,7 +201,9 @@ export function Devices() {
   })
 
   return (
-    <div className="w-full px-8 py-16">
+    <div>
+      <h2 className='text-3xl mb-8'>Dispositivos</h2>
+
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter emails..."

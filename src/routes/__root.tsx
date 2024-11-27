@@ -16,6 +16,7 @@ function NavItem({ icon: Icon, label, to }: NavItemProps) {
   return (
     <Link to={to} className={cn(
       "[&.active]:font-bold",
+      "[&.active]:text-white",
       "dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white",
       buttonVariants({ variant: "default" }),
     )}>
@@ -28,7 +29,7 @@ function NavItem({ icon: Icon, label, to }: NavItemProps) {
 function Nav() {
   return (
     <div className="group flex flex-col gap-4 py-2 w-48 h-full border-r-2">
-      <h1 className="mx-auto text-3xl mb-8 font-bold">PJI3</h1>
+      <h1 className="mx-auto text-2xl my-8 font-bold">PJI3</h1>
 
       <nav className="grid gap-1 px-2">
         <NavItem label="Home" icon={HomeIcon} to="/" />
@@ -48,8 +49,10 @@ export const Route = createRootRoute({
     <div className='flex h-dvh'>
       <Nav />
 
-      <Outlet />
-      <TanStackRouterDevtools />
+      <div className="grow p-16 min-w-full">
+        <Outlet />
+        <TanStackRouterDevtools />
+      </div>
     </div>
   ),
 })
