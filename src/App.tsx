@@ -1,12 +1,13 @@
-import type React from "react";
-import MyMap from "./MyMap"; // Ajuste o caminho conforme necessário
+import { Button } from "@/components/ui/button"
 
-const App: React.FC = () => {
+export default function Home() {
 	return (
-		<div className="h-screen">
-			<MyMap />
-		</div>
-	);
-};
+		<div>
+			<h1 className="text-3xl font-bold underline">
+				Hello world!
+			</h1>
 
-export default App;
+			<Button>Click me</Button>
+		</div>
+	)
+}
