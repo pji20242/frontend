@@ -1,6 +1,7 @@
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
+import { GoogleOAuthProvider } from "@react-oauth/google"; // Importa o GoogleOAuthProvider
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
@@ -18,13 +19,15 @@ declare module "@tanstack/react-router" {
 }
 
 // Render the app
-// biome-ignore lint/style/noNonNullAssertion: <explanation>
+// biome-ignore lint/style/noNonNullAssertion: Garantimos que o elemento existe no DOM
 const rootElement = document.getElementById("root")!;
 if (!rootElement.innerHTML) {
 	const root = ReactDOM.createRoot(rootElement);
 	root.render(
 		<StrictMode>
-			<RouterProvider router={router} />
+			<GoogleOAuthProvider clientId="1053161009517-46lj5ti5re5vrn94v20s5gbb7klfbj8o.apps.googleusercontent.com">
+				<RouterProvider router={router} />
+			</GoogleOAuthProvider>
 		</StrictMode>,
 	);
 }
