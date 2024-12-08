@@ -13,53 +13,84 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as LoginImport } from './routes/login'
+import { Route as DashboardImport } from './routes/dashboard'
+import { Route as IndexImport } from './routes/index'
+import { Route as DashboardIndexImport } from './routes/dashboard/index'
+import { Route as AuthIndexImport } from './routes/auth/index'
+import { Route as DashboardHomeImport } from './routes/dashboard/home'
 
 // Create Virtual Routes
 
-const UsersLazyImport = createFileRoute('/users')()
-const ReportsLazyImport = createFileRoute('/reports')()
-const DevicesLazyImport = createFileRoute('/devices')()
-const CooperativesLazyImport = createFileRoute('/cooperatives')()
-const IndexLazyImport = createFileRoute('/')()
+const DashboardUsersLazyImport = createFileRoute('/dashboard/users')()
+const DashboardReportsLazyImport = createFileRoute('/dashboard/reports')()
+const DashboardDevicesLazyImport = createFileRoute('/dashboard/devices')()
+const DashboardCooperativesLazyImport = createFileRoute(
+  '/dashboard/cooperatives',
+)()
 
 // Create/Update Routes
 
-const UsersLazyRoute = UsersLazyImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/users.lazy').then((d) => d.Route))
-
-const ReportsLazyRoute = ReportsLazyImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/reports.lazy').then((d) => d.Route))
-
-const DevicesLazyRoute = DevicesLazyImport.update({
-  id: '/devices',
-  path: '/devices',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/devices.lazy').then((d) => d.Route))
-
-const CooperativesLazyRoute = CooperativesLazyImport.update({
-  id: '/cooperatives',
-  path: '/cooperatives',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/cooperatives.lazy').then((d) => d.Route))
-
-const LoginRoute = LoginImport.update({
-  id: '/login',
-  path: '/login',
+const DashboardRoute = DashboardImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRoute,
 } as any)
 
-const IndexLazyRoute = IndexLazyImport.update({
+const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
+} as any)
+
+const DashboardIndexRoute = DashboardIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+
+const AuthIndexRoute = AuthIndexImport.update({
+  id: '/auth/',
+  path: '/auth/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DashboardUsersLazyRoute = DashboardUsersLazyImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => DashboardRoute,
+} as any).lazy(() =>
+  import('./routes/dashboard/users.lazy').then((d) => d.Route),
+)
+
+const DashboardReportsLazyRoute = DashboardReportsLazyImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => DashboardRoute,
+} as any).lazy(() =>
+  import('./routes/dashboard/reports.lazy').then((d) => d.Route),
+)
+
+const DashboardDevicesLazyRoute = DashboardDevicesLazyImport.update({
+  id: '/devices',
+  path: '/devices',
+  getParentRoute: () => DashboardRoute,
+} as any).lazy(() =>
+  import('./routes/dashboard/devices.lazy').then((d) => d.Route),
+)
+
+const DashboardCooperativesLazyRoute = DashboardCooperativesLazyImport.update({
+  id: '/cooperatives',
+  path: '/cooperatives',
+  getParentRoute: () => DashboardRoute,
+} as any).lazy(() =>
+  import('./routes/dashboard/cooperatives.lazy').then((d) => d.Route),
+)
+
+const DashboardHomeRoute = DashboardHomeImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -69,115 +100,174 @@ declare module '@tanstack/react-router' {
       id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexLazyImport
+      preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardImport
       parentRoute: typeof rootRoute
     }
-    '/cooperatives': {
-      id: '/cooperatives'
+    '/dashboard/home': {
+      id: '/dashboard/home'
+      path: '/home'
+      fullPath: '/dashboard/home'
+      preLoaderRoute: typeof DashboardHomeImport
+      parentRoute: typeof DashboardImport
+    }
+    '/dashboard/cooperatives': {
+      id: '/dashboard/cooperatives'
       path: '/cooperatives'
-      fullPath: '/cooperatives'
-      preLoaderRoute: typeof CooperativesLazyImport
-      parentRoute: typeof rootRoute
+      fullPath: '/dashboard/cooperatives'
+      preLoaderRoute: typeof DashboardCooperativesLazyImport
+      parentRoute: typeof DashboardImport
     }
-    '/devices': {
-      id: '/devices'
+    '/dashboard/devices': {
+      id: '/dashboard/devices'
       path: '/devices'
-      fullPath: '/devices'
-      preLoaderRoute: typeof DevicesLazyImport
-      parentRoute: typeof rootRoute
+      fullPath: '/dashboard/devices'
+      preLoaderRoute: typeof DashboardDevicesLazyImport
+      parentRoute: typeof DashboardImport
     }
-    '/reports': {
-      id: '/reports'
+    '/dashboard/reports': {
+      id: '/dashboard/reports'
       path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof ReportsLazyImport
+      fullPath: '/dashboard/reports'
+      preLoaderRoute: typeof DashboardReportsLazyImport
+      parentRoute: typeof DashboardImport
+    }
+    '/dashboard/users': {
+      id: '/dashboard/users'
+      path: '/users'
+      fullPath: '/dashboard/users'
+      preLoaderRoute: typeof DashboardUsersLazyImport
+      parentRoute: typeof DashboardImport
+    }
+    '/auth/': {
+      id: '/auth/'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthIndexImport
       parentRoute: typeof rootRoute
     }
-    '/users': {
-      id: '/users'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof UsersLazyImport
-      parentRoute: typeof rootRoute
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexImport
+      parentRoute: typeof DashboardImport
     }
   }
 }
 
 // Create and export the route tree
 
+interface DashboardRouteChildren {
+  DashboardHomeRoute: typeof DashboardHomeRoute
+  DashboardCooperativesLazyRoute: typeof DashboardCooperativesLazyRoute
+  DashboardDevicesLazyRoute: typeof DashboardDevicesLazyRoute
+  DashboardReportsLazyRoute: typeof DashboardReportsLazyRoute
+  DashboardUsersLazyRoute: typeof DashboardUsersLazyRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardHomeRoute: DashboardHomeRoute,
+  DashboardCooperativesLazyRoute: DashboardCooperativesLazyRoute,
+  DashboardDevicesLazyRoute: DashboardDevicesLazyRoute,
+  DashboardReportsLazyRoute: DashboardReportsLazyRoute,
+  DashboardUsersLazyRoute: DashboardUsersLazyRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
-  '/': typeof IndexLazyRoute
-  '/login': typeof LoginRoute
-  '/cooperatives': typeof CooperativesLazyRoute
-  '/devices': typeof DevicesLazyRoute
-  '/reports': typeof ReportsLazyRoute
-  '/users': typeof UsersLazyRoute
+  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/dashboard/home': typeof DashboardHomeRoute
+  '/dashboard/cooperatives': typeof DashboardCooperativesLazyRoute
+  '/dashboard/devices': typeof DashboardDevicesLazyRoute
+  '/dashboard/reports': typeof DashboardReportsLazyRoute
+  '/dashboard/users': typeof DashboardUsersLazyRoute
+  '/auth': typeof AuthIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexLazyRoute
-  '/login': typeof LoginRoute
-  '/cooperatives': typeof CooperativesLazyRoute
-  '/devices': typeof DevicesLazyRoute
-  '/reports': typeof ReportsLazyRoute
-  '/users': typeof UsersLazyRoute
+  '/': typeof IndexRoute
+  '/dashboard/home': typeof DashboardHomeRoute
+  '/dashboard/cooperatives': typeof DashboardCooperativesLazyRoute
+  '/dashboard/devices': typeof DashboardDevicesLazyRoute
+  '/dashboard/reports': typeof DashboardReportsLazyRoute
+  '/dashboard/users': typeof DashboardUsersLazyRoute
+  '/auth': typeof AuthIndexRoute
+  '/dashboard': typeof DashboardIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/': typeof IndexLazyRoute
-  '/login': typeof LoginRoute
-  '/cooperatives': typeof CooperativesLazyRoute
-  '/devices': typeof DevicesLazyRoute
-  '/reports': typeof ReportsLazyRoute
-  '/users': typeof UsersLazyRoute
+  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/dashboard/home': typeof DashboardHomeRoute
+  '/dashboard/cooperatives': typeof DashboardCooperativesLazyRoute
+  '/dashboard/devices': typeof DashboardDevicesLazyRoute
+  '/dashboard/reports': typeof DashboardReportsLazyRoute
+  '/dashboard/users': typeof DashboardUsersLazyRoute
+  '/auth/': typeof AuthIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/login'
-    | '/cooperatives'
-    | '/devices'
-    | '/reports'
-    | '/users'
+    | '/dashboard'
+    | '/dashboard/home'
+    | '/dashboard/cooperatives'
+    | '/dashboard/devices'
+    | '/dashboard/reports'
+    | '/dashboard/users'
+    | '/auth'
+    | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/cooperatives' | '/devices' | '/reports' | '/users'
+  to:
+    | '/'
+    | '/dashboard/home'
+    | '/dashboard/cooperatives'
+    | '/dashboard/devices'
+    | '/dashboard/reports'
+    | '/dashboard/users'
+    | '/auth'
+    | '/dashboard'
   id:
     | '__root__'
     | '/'
-    | '/login'
-    | '/cooperatives'
-    | '/devices'
-    | '/reports'
-    | '/users'
+    | '/dashboard'
+    | '/dashboard/home'
+    | '/dashboard/cooperatives'
+    | '/dashboard/devices'
+    | '/dashboard/reports'
+    | '/dashboard/users'
+    | '/auth/'
+    | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexLazyRoute: typeof IndexLazyRoute
-  LoginRoute: typeof LoginRoute
-  CooperativesLazyRoute: typeof CooperativesLazyRoute
-  DevicesLazyRoute: typeof DevicesLazyRoute
-  ReportsLazyRoute: typeof ReportsLazyRoute
-  UsersLazyRoute: typeof UsersLazyRoute
+  IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
+  AuthIndexRoute: typeof AuthIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexLazyRoute: IndexLazyRoute,
-  LoginRoute: LoginRoute,
-  CooperativesLazyRoute: CooperativesLazyRoute,
-  DevicesLazyRoute: DevicesLazyRoute,
-  ReportsLazyRoute: ReportsLazyRoute,
-  UsersLazyRoute: UsersLazyRoute,
+  IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRouteWithChildren,
+  AuthIndexRoute: AuthIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -191,30 +281,50 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/login",
-        "/cooperatives",
-        "/devices",
-        "/reports",
-        "/users"
+        "/dashboard",
+        "/auth/"
       ]
     },
     "/": {
-      "filePath": "index.lazy.tsx"
+      "filePath": "index.tsx"
     },
-    "/login": {
-      "filePath": "login.tsx"
+    "/dashboard": {
+      "filePath": "dashboard.tsx",
+      "children": [
+        "/dashboard/home",
+        "/dashboard/cooperatives",
+        "/dashboard/devices",
+        "/dashboard/reports",
+        "/dashboard/users",
+        "/dashboard/"
+      ]
     },
-    "/cooperatives": {
-      "filePath": "cooperatives.lazy.tsx"
+    "/dashboard/home": {
+      "filePath": "dashboard/home.tsx",
+      "parent": "/dashboard"
     },
-    "/devices": {
-      "filePath": "devices.lazy.tsx"
+    "/dashboard/cooperatives": {
+      "filePath": "dashboard/cooperatives.lazy.tsx",
+      "parent": "/dashboard"
     },
-    "/reports": {
-      "filePath": "reports.lazy.tsx"
+    "/dashboard/devices": {
+      "filePath": "dashboard/devices.lazy.tsx",
+      "parent": "/dashboard"
     },
-    "/users": {
-      "filePath": "users.lazy.tsx"
+    "/dashboard/reports": {
+      "filePath": "dashboard/reports.lazy.tsx",
+      "parent": "/dashboard"
+    },
+    "/dashboard/users": {
+      "filePath": "dashboard/users.lazy.tsx",
+      "parent": "/dashboard"
+    },
+    "/auth/": {
+      "filePath": "auth/index.tsx"
+    },
+    "/dashboard/": {
+      "filePath": "dashboard/index.tsx",
+      "parent": "/dashboard"
     }
   }
 }
