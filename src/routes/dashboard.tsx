@@ -60,7 +60,7 @@ function LayoutComponent() {
     <div className="flex h-dvh">
       <Nav />
 
-      <div className="grow p-16 min-w-full">
+      <div className="grow p-16">
         <Outlet />
       </div>
     </div>
