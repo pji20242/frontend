@@ -1,3 +1,5 @@
+import { useQuery } from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -9,9 +11,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import axios from 'axios'
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react'
 import * as React from 'react'
-import { createFileRoute } from '@tanstack/react-router'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -25,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -45,26 +48,16 @@ export type Reading = {
   timestamp: string
 }
 
-const data: Reading[] = [
-  {
-    readingId: 'reading1',
-    variable: 'temperatura',
-    valor: 25.5,
-    timestamp: '2024-02-15T10:30:00Z',
-  },
-  {
-    readingId: 'reading2',
-    variable: 'umidade',
-    valor: 65.2,
-    timestamp: '2024-02-15T10:35:00Z',
-  },
-  {
-    readingId: 'reading3',
-    variable: 'luminosidade',
-    valor: 500,
-    timestamp: '2024-02-15T10:40:00Z',
-  },
-]
+// Function to fetch readings for a specific device
+const fetchDeviceReadings = async (deviceId: string): Promise<Reading[]> => {
+  try {
+    const response = await axios.get(`/api/devices/${deviceId}/readings`)
+    return response.data
+  } catch (error) {
+    console.error('Error fetching device readings:', error)
+    throw error
+  }
+}
 
 export const columns: ColumnDef<Reading>[] = [
   {
@@ -162,6 +155,20 @@ export const columns: ColumnDef<Reading>[] = [
 ]
 
 export function DeviceReadings() {
+  // Get the device ID from the route params
+  const { id: deviceId } = Route.useParams()
+
+  // Fetch readings using React Query
+  const {
+    data: readings,
+    isLoading,
+    isError,
+    error
+  } = useQuery<Reading[], Error>({
+    queryKey: ['deviceReadings', deviceId],
+    queryFn: () => fetchDeviceReadings(deviceId),
+  })
+
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -171,7 +178,7 @@ export function DeviceReadings() {
   const [rowSelection, setRowSelection] = React.useState({})
 
   const table = useReactTable({
-    data,
+    data: readings || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -187,6 +194,32 @@ export function DeviceReadings() {
       rowSelection,
     },
   })
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div>
+        <h2 className="text-3xl mb-8">Leituras do Dispositivo</h2>
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <div>
+        <h2 className="text-3xl mb-8">Erro ao Carregar Leituras</h2>
+        <p className="text-red-500">
+          Não foi possível carregar as leituras do dispositivo: {error.message}
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -241,9 +274,9 @@ export function DeviceReadings() {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   )
                 })}

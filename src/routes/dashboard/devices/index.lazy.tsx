@@ -7,7 +7,9 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { useQuery } from '@tanstack/react-query'
 import { Link, createLazyFileRoute } from '@tanstack/react-router'
+import axios from 'axios'
 import React from 'react'
 
 export const Route = createLazyFileRoute('/dashboard/devices/')({
@@ -23,35 +25,55 @@ export type Device = {
   ultimaLeitura: string
 }
 
-const data: Device[] = [
-  {
-    id: 'device1',
-    significancia: 1500,
-    dono: 'João Silva',
-    leitura: 2500,
-    cooperativa: 'Cooperativa Central',
-    ultimaLeitura: '2024-02-15T10:30:00Z',
-  },
-  {
-    id: 'device2',
-    significancia: 1200,
-    dono: 'Maria Souza',
-    leitura: 2200,
-    cooperativa: 'Cooperativa Rural',
-    ultimaLeitura: '2024-02-14T15:45:00Z',
-  },
-]
+// API function to fetch devices
+const fetchDevices = async (): Promise<Device[]> => {
+  const { data } = await axios.get('/api/devices')
+
+  // Ensure we always return an array
+  return Array.isArray(data) ? data : []
+}
 
 export function Devices() {
   const [searchTerm, setSearchTerm] = React.useState('')
 
-  // Filter devices based on search term
-  const filteredDevices = data.filter(
+  // Use React Query to fetch devices
+  const {
+    data: devices = [],
+    isLoading,
+    isError,
+    error
+  } = useQuery<Device[], Error>({
+    queryKey: ['devices'],
+    queryFn: fetchDevices,
+    // Add retry logic if needed
+    retry: 1,
+  })
+
+  // Ensure devices is always an array before filtering
+  const filteredDevices = (devices || []).filter(
     (device) =>
       device.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       device.dono.toLowerCase().includes(searchTerm.toLowerCase()) ||
       device.cooperativa.toLowerCase().includes(searchTerm.toLowerCase()),
   )
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <span>Carregando dispositivos...</span>
+      </div>
+    )
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <div className="text-red-500 text-center">
+        Erro ao carregar dispositivos: {error.message}
+      </div>
+    )
+  }
 
   return (
     <div>

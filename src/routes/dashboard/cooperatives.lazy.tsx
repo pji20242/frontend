@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -24,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -49,28 +51,16 @@ export type Cooperativa = {
   email: string
 }
 
-const data: Cooperativa[] = [
-  {
-    id: 'coop1',
-    nome: 'Cooperativa Central',
-    endereco: 'Rua Principal, 123 - Centro, São Paulo - SP',
-    qtdUsuarios: 50,
-    qtdLicencas: 30,
-    qtdDispositivos: 25,
-    cnpj: '12.345.678/0001-90',
-    email: 'contato@cooperativacentral.com.br',
-  },
-  {
-    id: 'coop2',
-    nome: 'Cooperativa Rural',
-    endereco: 'Avenida Agricultura, 456 - Rural, Campinas - SP',
-    qtdUsuarios: 30,
-    qtdLicencas: 20,
-    qtdDispositivos: 12,
-    cnpj: '98.765.432/0001-10',
-    email: 'admin@cooperativarural.com.br',
-  },
-]
+// API function to fetch cooperatives
+const fetchCooperativas = async (): Promise<Cooperativa[]> => {
+  // Replace this with your actual API endpoint
+  const response = await fetch('/api/cooperativas')
+  if (!response.ok) {
+    throw new Error('Network response was not ok')
+  }
+  return response.json()
+}
+
 
 export const columns: ColumnDef<Cooperativa>[] = [
   {
@@ -179,7 +169,14 @@ export const columns: ColumnDef<Cooperativa>[] = [
   },
 ]
 
+
 export function Cooperativas() {
+  // Fetch data using React Query
+  const { data: cooperativas, isLoading, isError } = useQuery<Cooperativa[]>({
+    queryKey: ['cooperativas'],
+    queryFn: fetchCooperativas,
+  })
+
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -189,7 +186,7 @@ export function Cooperativas() {
   const [rowSelection, setRowSelection] = React.useState({})
 
   const table = useReactTable({
-    data,
+    data: cooperativas || [], // Use empty array if data is not loaded
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -205,6 +202,31 @@ export function Cooperativas() {
       rowSelection,
     },
   })
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div>
+        <h2 className="text-3xl mb-8">Cooperativas</h2>
+        <div className="space-y-4">
+          {[...Array(5)].map((_, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+            <Skeleton key={index} className="h-12 w-full" />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <div>
+        <h2 className="text-3xl mb-8">Cooperativas</h2>
+        <p className="text-red-500">Erro ao carregar as cooperativas</p>
+      </div>
+    )
+  }
 
   return (
     <div>

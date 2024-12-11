@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -24,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -46,22 +48,15 @@ export type User = {
   role: 'Admin' | 'User' | 'Viewer'
 }
 
-const data: User[] = [
-  {
-    id: 'user1',
-    nome: 'João Silva',
-    qtdDispositivos: 3,
-    email: 'joao.silva@example.com',
-    role: 'Admin',
-  },
-  {
-    id: 'user2',
-    nome: 'Maria Souza',
-    qtdDispositivos: 1,
-    email: 'maria.souza@example.com',
-    role: 'User',
-  },
-]
+// API function to fetch users
+const fetchUsers = async (): Promise<User[]> => {
+  // Replace this with your actual API endpoint
+  const response = await fetch('/api/users')
+  if (!response.ok) {
+    throw new Error('Network response was not ok')
+  }
+  return response.json()
+}
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -150,6 +145,12 @@ export const columns: ColumnDef<User>[] = [
 ]
 
 export function Users() {
+  // Fetch data using React Query
+  const { data: users, isLoading, isError } = useQuery<User[]>({
+    queryKey: ['users'],
+    queryFn: fetchUsers,
+  })
+
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -159,7 +160,7 @@ export function Users() {
   const [rowSelection, setRowSelection] = React.useState({})
 
   const table = useReactTable({
-    data,
+    data: users || [], // Use empty array if data is not loaded
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -175,6 +176,31 @@ export function Users() {
       rowSelection,
     },
   })
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div>
+        <h2 className="text-3xl mb-8">Usuários</h2>
+        <div className="space-y-4">
+          {[...Array(5)].map((_, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+            <Skeleton key={index} className="h-12 w-full" />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <div>
+        <h2 className="text-3xl mb-8">Usuários</h2>
+        <p className="text-red-500">Erro ao carregar os usuários</p>
+      </div>
+    )
+  }
 
   return (
     <div>
