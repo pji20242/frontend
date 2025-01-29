@@ -51,7 +51,7 @@ export type Reading = {
 // Function to fetch readings for a specific device
 const fetchDeviceReadings = async (deviceId: string): Promise<Reading[]> => {
   try {
-    const response = await axios.get(`/api/devices/${deviceId}/readings`)
+    const response = await axios.get(`/api/v1/devices/${deviceId}/readings`)
     return response.data
   } catch (error) {
     console.error('Error fetching device readings:', error)

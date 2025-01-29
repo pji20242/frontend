@@ -54,7 +54,7 @@ export type Cooperativa = {
 // API function to fetch cooperatives
 const fetchCooperativas = async (): Promise<Cooperativa[]> => {
   // Replace this with your actual API endpoint
-  const response = await fetch('/api/cooperativas')
+  const response = await fetch('/api/v1/cooperativas')
   if (!response.ok) {
     throw new Error('Network response was not ok')
   }

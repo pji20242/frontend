@@ -51,7 +51,7 @@ export type User = {
 // API function to fetch users
 const fetchUsers = async (): Promise<User[]> => {
   // Replace this with your actual API endpoint
-  const response = await fetch('/api/users')
+  const response = await fetch('/api/v1/users')
   if (!response.ok) {
     throw new Error('Network response was not ok')
   }

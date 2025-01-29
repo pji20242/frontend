@@ -27,7 +27,7 @@ export type Device = {
 
 // API function to fetch devices
 const fetchDevices = async (): Promise<Device[]> => {
-  const { data } = await axios.get('/api/devices')
+  const { data } = await axios.get('/api/v1/devices')
 
   // Ensure we always return an array
   return Array.isArray(data) ? data : []
