@@ -17,8 +17,8 @@ export const Route = createLazyFileRoute('/dashboard/devices/')({
 })
 
 export type Device = {
-  id: string
-  significancia: number
+  uuid: string
+  peso: number
   dono: string
   leitura: number
   cooperativa: string
@@ -52,7 +52,7 @@ export function Devices() {
   // Ensure devices is always an array before filtering
   const filteredDevices = (devices || []).filter(
     (device) =>
-      device.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      device.uuid.toLowerCase().includes(searchTerm.toLowerCase()) ||
       device.dono.toLowerCase().includes(searchTerm.toLowerCase()) ||
       device.cooperativa.toLowerCase().includes(searchTerm.toLowerCase()),
   )
@@ -91,15 +91,15 @@ export function Devices() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredDevices.length > 0 ? (
           filteredDevices.map((device) => (
-            <Card key={device.id} className="w-full">
+            <Card key={device.uuid} className="w-full">
               <CardHeader>
-                <CardTitle>Dispositivo {device.id}</CardTitle>
+                <CardTitle>Dispositivo {device.uuid}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="font-medium">Valor de Significância:</span>
-                    <span>{device.significancia}</span>
+                    <span>{device.peso}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium">Dono:</span>
@@ -125,7 +125,7 @@ export function Devices() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Link to={`/dashboard/devices/${device.id}/readings`}>
+                <Link to={`/dashboard/devices/${device.uuid}/readings`}>
                   <Button variant="outline" className="w-full">
                     Ver Leituras
                   </Button>
