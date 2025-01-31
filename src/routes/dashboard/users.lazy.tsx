@@ -41,9 +41,9 @@ export const Route = createLazyFileRoute('/dashboard/users')({
 })
 
 export type User = {
-  id: string
+  matricula: number
   nome: string
-  qtdDispositivos: number
+  licencas: number
   email: string
   role: 'Admin' | 'User' | 'Viewer'
 }
@@ -95,11 +95,11 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => <div>{row.getValue('nome')}</div>,
   },
   {
-    accessorKey: 'qtdDispositivos',
+    accessorKey: 'licencas',
     header: () => <div className="text-right">Qtd. Dispositivos</div>,
     cell: ({ row }) => {
-      const qtdDispositivos = Number.parseInt(row.getValue('qtdDispositivos'))
-      return <div className="text-right">{qtdDispositivos}</div>
+      const licencas = Number.parseInt(row.getValue('licencas'))
+      return <div className="text-right">{licencas}</div>
     },
   },
   {
@@ -129,7 +129,7 @@ export const columns: ColumnDef<User>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Ações</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(user.id)}
+              onClick={() => navigator.clipboard.writeText(user.matricula.toString())}
             >
               Copiar ID do Usuário
             </DropdownMenuItem>
@@ -162,6 +162,7 @@ export function Users() {
   const table = useReactTable({
     data: users || [], // Use empty array if data is not loaded
     columns,
+    getRowId: (row) => row.matricula.toString(), 
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
