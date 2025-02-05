@@ -125,7 +125,7 @@ export function Devices() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Link to={`/dashboard/devices/${device.uuid}/readings`}>
+                <Link to={`/dashboard/devices/${device.uuid}`}>
                   <Button variant="outline" className="w-full">
                     Ver Leituras
                   </Button>

@@ -14,6 +14,15 @@ import {
 import axios from 'axios'
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react'
 import * as React from 'react'
+import {
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -37,7 +46,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-export const Route = createFileRoute('/dashboard/devices/$id/readings')({
+export const Route = createFileRoute('/dashboard/devices/$id')({
   component: DeviceReadings,
 })
 
@@ -48,11 +57,11 @@ export type Reading = {
   timestamp: string
 }
 
-// Function to fetch readings for a specific device
+// Função para buscar as leituras do dispositivo
 const fetchDeviceReadings = async (deviceId: string): Promise<Reading[]> => {
   try {
-    const response = await axios.get(`/api/v1/devices/${deviceId}/readings`)
-    return response.data
+    const response = await axios.get(`/api/v1/devices/${deviceId}`)
+    return response.data.slice(0, 1000)
   } catch (error) {
     console.error('Error fetching device readings:', error)
     throw error
@@ -155,20 +164,51 @@ export const columns: ColumnDef<Reading>[] = [
 ]
 
 export function DeviceReadings() {
-  // Get the device ID from the route params
+  // Obtém o ID do dispositivo via params da rota
   const { id: deviceId } = Route.useParams()
 
-  // Fetch readings using React Query
+  // Busca as leituras utilizando React Query
   const {
     data: readings,
     isLoading,
     isError,
-    error
+    error,
   } = useQuery<Reading[], Error>({
     queryKey: ['deviceReadings', deviceId],
     queryFn: () => fetchDeviceReadings(deviceId),
   })
 
+  // ============================
+  // Lógica do Gráfico de Série Temporal
+  // ============================
+  // Estado para a variável selecionada para o gráfico
+  const [selectedVariable, setSelectedVariable] = React.useState<string>('')
+
+  // Obtém as variáveis únicas disponíveis (ex.: temperatura, umidade, luminosidade)
+  const sensorVariables = React.useMemo(() => {
+    return readings ? Array.from(new Set(readings.map((r) => r.variable))) : []
+  }, [readings])
+
+  // Define a primeira variável encontrada como padrão, se nenhuma estiver selecionada
+  React.useEffect(() => {
+    if (sensorVariables.length > 0 && !selectedVariable) {
+      setSelectedVariable(sensorVariables[0])
+    }
+  }, [sensorVariables, selectedVariable])
+
+  // Filtra e ordena os dados para o gráfico conforme a variável selecionada
+  const filteredChartData = React.useMemo(() => {
+    if (!readings) return []
+    return readings
+      .filter((r) => r.variable === selectedVariable)
+      .sort(
+        (a, b) =>
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+      )
+  }, [readings, selectedVariable])
+  // ============================
+
+  // Configurações da tabela (já existentes)
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -195,7 +235,7 @@ export function DeviceReadings() {
     },
   })
 
-  // Loading state
+  // Estado de carregamento
   if (isLoading) {
     return (
       <div>
@@ -209,7 +249,7 @@ export function DeviceReadings() {
     )
   }
 
-  // Error state
+  // Estado de erro
   if (isError) {
     return (
       <div>
@@ -225,6 +265,59 @@ export function DeviceReadings() {
     <div>
       <h2 className="text-3xl mb-8">Leituras do Dispositivo</h2>
 
+      {/* Seção do Gráfico de Série Temporal */}
+      <div className="mb-8 border p-4 rounded">
+        <h3 className="text-2xl mb-4">
+          Série Temporal {selectedVariable && `- ${selectedVariable}`}
+        </h3>
+        <div className="mb-4">
+          <label htmlFor="variable-select" className="mr-2 font-medium">
+            Selecionar variável:
+          </label>
+          <select
+            id="variable-select"
+            value={selectedVariable}
+            onChange={(e) => setSelectedVariable(e.target.value)}
+            className="border p-2 rounded"
+          >
+            {sensorVariables.map((v) => (
+              <option key={v} value={v}>
+                {v}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {filteredChartData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={filteredChartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="timestamp"
+                tickFormatter={(value) =>
+                  new Date(value).toLocaleTimeString('pt-BR')
+                }
+              />
+              <YAxis />
+              <Tooltip
+                labelFormatter={(label) =>
+                  new Date(label).toLocaleString('pt-BR')
+                }
+              />
+              <Line
+                type="monotone"
+                dataKey="valor"
+                stroke="#8884d8"
+                activeDot={{ r: 8 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <p>Nenhum dado para exibir para a variável selecionada.</p>
+        )}
+      </div>
+
+      {/* Seção da Tabela */}
       <div className="flex items-center py-4">
         <Input
           placeholder="Filtrar por ID, variável..."
@@ -268,18 +361,16 @@ export function DeviceReadings() {
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
                           header.column.columnDef.header,
                           header.getContext(),
                         )}
-                    </TableHead>
-                  )
-                })}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
