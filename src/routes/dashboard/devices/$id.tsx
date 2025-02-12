@@ -1,18 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import {
-  type ColumnDef,
-  type ColumnFiltersState,
-  type SortingState,
-  type VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table'
 import axios from 'axios'
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react'
 import * as React from 'react'
 import {
   LineChart,
@@ -24,238 +12,176 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
 
+// ===========================
+// Rota
+// ===========================
 export const Route = createFileRoute('/dashboard/devices/$id')({
   component: DeviceReadings,
 })
 
-export type Reading = {
-  readingId: string
-  variable: 'temperatura' | 'umidade' | 'luminosidade'
-  valor: number
+// ===========================
+// Mapeamento ID -> Nome do Sensor
+// ===========================
+const sensorIdToName: Record<number, string> = {
+  1: 'Temperatura',
+  2: 'Pressão',
+  3: 'Luminosidade',
+  4: 'Umidade',
+  5: 'Corrente',
+  6: 'Tensão',
+}
+
+// ===========================
+// Tipos
+// ===========================
+export type SensorReading = {
   timestamp: string
+  id_sensor: number
+  valor: number
 }
 
-// Função para buscar as leituras do dispositivo
-const fetchDeviceReadings = async (deviceId: string): Promise<Reading[]> => {
-  try {
-    const response = await axios.get(`/api/v1/devices/${deviceId}`)
-    return response.data.slice(0, 1000)
-  } catch (error) {
-    console.error('Error fetching device readings:', error)
-    throw error
+// ===========================
+// Funções de fetch
+// ===========================
+const fetchDeviceReadings = async (deviceId: string): Promise<SensorReading[]> => {
+  const response = await axios.get(`/api/v1/devices/${deviceId}`)
+  return response.data
+}
+
+const fetchSensorReadings = async (
+  deviceId: string,
+  sensorId: string,
+): Promise<SensorReading[]> => {
+  const response = await axios.get(`/api/v1/devices/${deviceId}/sensor/${sensorId}`)
+  return response.data
+}
+
+// ===========================
+// Função para filtrar leituras por data (frontend)
+// ===========================
+function filterReadingsByRange(readings: SensorReading[], range: string) {
+  if (!range) return readings
+
+  const now = new Date()
+  let cutoff = new Date()
+
+  switch (range) {
+    case 'hour':
+      // Última hora
+      cutoff = new Date(now.getTime() - 60 * 60 * 1000)
+      break
+    case 'day':
+      // Último dia (24h)
+      cutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+      break
+    case 'week':
+      // Última semana (7 dias)
+      cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      break
+    case 'month':
+      // Último mês (30 dias, simplificado)
+      cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      break
+    default:
+      // Se não houver range específico, não filtra
+      return readings
   }
+
+  return readings.filter((r) => {
+    const ts = new Date(r.timestamp)
+    return ts >= cutoff
+  })
 }
 
-export const columns: ColumnDef<Reading>[] = [
-  {
-    id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Selecionar todos"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Selecionar linha"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'readingId',
-    header: 'ID',
-    cell: ({ row }) => <div>{row.getValue('readingId')}</div>,
-  },
-  {
-    accessorKey: 'variable',
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-      >
-        Variável
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => <div>{row.getValue('variable')}</div>,
-  },
-  {
-    accessorKey: 'valor',
-    header: () => <div className="text-right">Valor</div>,
-    cell: ({ row }) => {
-      const valor = Number.parseFloat(row.getValue('valor'))
-      return <div className="text-right">{valor.toFixed(2)}</div>
-    },
-  },
-  {
-    accessorKey: 'timestamp',
-    header: 'Timestamp',
-    cell: ({ row }) => {
-      const timestamp = new Date(row.getValue('timestamp'))
-      return (
-        <div>
-          {timestamp.toLocaleString('pt-BR', {
-            dateStyle: 'short',
-            timeStyle: 'short',
-          })}
-        </div>
-      )
-    },
-  },
-  {
-    id: 'actions',
-    enableHiding: false,
-    cell: ({ row }) => {
-      const reading = row.original
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Ações</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(reading.readingId)}
-            >
-              Copiar ID da Leitura
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Detalhes da Leitura</DropdownMenuItem>
-            <DropdownMenuItem>Análise Comparativa</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
-  },
-]
-
+// ===========================
+// Componente principal
+// ===========================
 export function DeviceReadings() {
-  // Obtém o ID do dispositivo via params da rota
+  // 1) Obter o UUID do device via params da rota
   const { id: deviceId } = Route.useParams()
 
-  // Busca as leituras utilizando React Query
+  // 2) Buscar TODAS as leituras desse device (sem filtro de sensor)
   const {
-    data: readings,
-    isLoading,
-    isError,
-    error,
-  } = useQuery<Reading[], Error>({
-    queryKey: ['deviceReadings', deviceId],
+    data: deviceData,
+    isLoading: isLoadingDevice,
+    isError: isErrorDevice,
+    error: errorDevice,
+  } = useQuery<SensorReading[], Error>({
+    queryKey: ['deviceReadingsAll', deviceId],
     queryFn: () => fetchDeviceReadings(deviceId),
   })
 
-  // ============================
-  // Lógica do Gráfico de Série Temporal
-  // ============================
-  // Estado para a variável selecionada para o gráfico
-  const [selectedVariable, setSelectedVariable] = React.useState<string>('')
+  // Lista de IDs de sensor únicos, extraídos de deviceData
+  const availableSensors = React.useMemo(() => {
+    if (!deviceData) return []
+    const uniqueSensors = new Set<number>()
+    // biome-ignore lint/complexity/noForEach: <explanation>
+    deviceData.forEach((d) => uniqueSensors.add(d.id_sensor))
+    return Array.from(uniqueSensors)
+  }, [deviceData])
 
-  // Obtém as variáveis únicas disponíveis (ex.: temperatura, umidade, luminosidade)
-  const sensorVariables = React.useMemo(() => {
-    return readings ? Array.from(new Set(readings.map((r) => r.variable))) : []
-  }, [readings])
+  // Estado para o sensor selecionado
+  const [selectedSensor, setSelectedSensor] = React.useState<string>('')
 
-  // Define a primeira variável encontrada como padrão, se nenhuma estiver selecionada
+  // Se houver sensores disponíveis e nenhum selecionado, seleciona o primeiro
   React.useEffect(() => {
-    if (sensorVariables.length > 0 && !selectedVariable) {
-      setSelectedVariable(sensorVariables[0])
+    if (availableSensors.length > 0 && !selectedSensor) {
+      setSelectedSensor(String(availableSensors[0]))
     }
-  }, [sensorVariables, selectedVariable])
+  }, [availableSensors, selectedSensor])
 
-  // Filtra e ordena os dados para o gráfico conforme a variável selecionada
-  const filteredChartData = React.useMemo(() => {
-    if (!readings) return []
-    return readings
-      .filter((r) => r.variable === selectedVariable)
-      .sort(
-        (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-      )
-  }, [readings, selectedVariable])
-  // ============================
-
-  // Configurações da tabela (já existentes)
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
-  )
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-
-  const table = useReactTable({
-    data: readings || [],
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
+  // 3) Ao selecionar um sensor no combo, buscamos as leituras específicas
+  const {
+    data: sensorReadings,
+    isLoading: isLoadingSensor,
+    isError: isErrorSensor,
+    error: errorSensor,
+  } = useQuery<SensorReading[], Error>({
+    queryKey: ['sensorReadings', deviceId, selectedSensor],
+    queryFn: () => fetchSensorReadings(deviceId, selectedSensor),
+    enabled: Boolean(selectedSensor), // só busca se houver sensor selecionado
   })
 
-  // Estado de carregamento
-  if (isLoading) {
+  // 4) Filtrar as leituras no frontend por data
+  const [selectedTimeRange, setSelectedTimeRange] = React.useState<string>('hour')
+
+  const filteredReadings = React.useMemo(() => {
+    if (!sensorReadings) return []
+    return filterReadingsByRange(sensorReadings, selectedTimeRange)
+  }, [sensorReadings, selectedTimeRange])
+
+  // 5) Dados do gráfico (ordenados por timestamp)
+  const chartData = React.useMemo(() => {
+    return filteredReadings.slice().sort((a, b) => {
+      return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    })
+  }, [filteredReadings])
+
+  // ============================
+  // Renderização
+  // ============================
+  // Se ainda estamos carregando o primeiro endpoint (deviceData)
+  if (isLoadingDevice) {
     return (
       <div>
-        <h2 className="text-3xl mb-8">Leituras do Dispositivo</h2>
-        <div className="space-y-4">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
+        <h2 className="text-3xl mb-6">Carregando Leituras do Dispositivo...</h2>
+        <Skeleton className="h-6 w-[300px]" />
       </div>
     )
   }
 
-  // Estado de erro
-  if (isError) {
+  // Se deu erro ou não veio nada do primeiro endpoint
+  if (isErrorDevice || !deviceData?.length) {
     return (
       <div>
-        <h2 className="text-3xl mb-8">Erro ao Carregar Leituras</h2>
-        <p className="text-red-500">
-          Não foi possível carregar as leituras do dispositivo: {error.message}
+        <h2 className="text-3xl mb-4">Erro ao Carregar Leituras</h2>
+        <p className="text-red-500 mb-2">
+          {errorDevice
+            ? `Não foi possível carregar as leituras: ${errorDevice.message}`
+            : 'Nenhum dado encontrado para este dispositivo.'}
         </p>
       </div>
     )
@@ -263,34 +189,68 @@ export function DeviceReadings() {
 
   return (
     <div>
-      <h2 className="text-3xl mb-8">Leituras do Dispositivo</h2>
+      <h2 className="text-3xl mb-6">Leituras do Dispositivo</h2>
 
-      {/* Seção do Gráfico de Série Temporal */}
-      <div className="mb-8 border p-4 rounded">
-        <h3 className="text-2xl mb-4">
-          Série Temporal {selectedVariable && `- ${selectedVariable}`}
-        </h3>
-        <div className="mb-4">
-          <label htmlFor="variable-select" className="mr-2 font-medium">
-            Selecionar variável:
+      {/* Seção de seleção de Sensor e Período */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+        {/* Select Sensor (esquerda) */}
+        <div className="flex flex-col">
+          <label htmlFor="sensorSelect" className="font-medium mb-1">
+            Selecione o Sensor:
           </label>
           <select
-            id="variable-select"
-            value={selectedVariable}
-            onChange={(e) => setSelectedVariable(e.target.value)}
-            className="border p-2 rounded"
+            id="sensorSelect"
+            className="border rounded p-2"
+            value={selectedSensor}
+            onChange={(e) => setSelectedSensor(e.target.value)}
           >
-            {sensorVariables.map((v) => (
-              <option key={v} value={v}>
-                {v}
-              </option>
-            ))}
+            {availableSensors.map((idSensor) => {
+              const nomeSensor = sensorIdToName[idSensor] ?? `Sensor ${idSensor}`
+              return (
+                <option key={idSensor} value={idSensor}>
+                  {nomeSensor} (ID: {idSensor})
+                </option>
+              )
+            })}
           </select>
         </div>
 
-        {filteredChartData.length > 0 ? (
+        {/* Select Time Range (direita) */}
+        <div className="flex flex-col">
+          <label htmlFor="timeRangeSelect" className="font-medium mb-1">
+            Período:
+          </label>
+          <select
+            id="timeRangeSelect"
+            className="border rounded p-2"
+            value={selectedTimeRange}
+            onChange={(e) => setSelectedTimeRange(e.target.value)}
+          >
+            <option value="hour">Última hora</option>
+            <option value="day">Último dia</option>
+            <option value="week">Última semana</option>
+            <option value="month">Último mês</option>
+            {/* Adicione mais opções se necessário */}
+          </select>
+        </div>
+      </div>
+
+      {/* Seção do Gráfico */}
+      <div className="mb-8 border p-4 rounded">
+        <h3 className="text-2xl mb-4">Série Temporal</h3>
+
+        {isLoadingSensor ? (
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+        ) : isErrorSensor ? (
+          <p className="text-red-500">
+            Erro ao carregar leituras do sensor: {errorSensor?.message}
+          </p>
+        ) : chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={filteredChartData}>
+            <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="timestamp"
@@ -313,96 +273,8 @@ export function DeviceReadings() {
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <p>Nenhum dado para exibir para a variável selecionada.</p>
+          <p>Nenhuma leitura disponível para o filtro atual.</p>
         )}
-      </div>
-
-      {/* Seção da Tabela */}
-      <div className="flex items-center py-4">
-        <Input
-          placeholder="Filtrar por ID, variável..."
-          value={
-            (table.getColumn('readingId')?.getFilterValue() as string) ??
-            (table.getColumn('variable')?.getFilterValue() as string) ??
-            ''
-          }
-          onChange={(event) => {
-            const value = event.target.value
-            table.getColumn('readingId')?.setFilterValue(value)
-            table.getColumn('variable')?.setFilterValue(value)
-          }}
-          className="max-w-sm"
-        />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Colunas <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  className="capitalize"
-                  checked={column.getIsVisible()}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                >
-                  {column.id}
-                </DropdownMenuCheckboxItem>
-              ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  Nenhuma leitura encontrada.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
       </div>
     </div>
   )
