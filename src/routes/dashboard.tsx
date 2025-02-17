@@ -1,4 +1,4 @@
-import { Link, Outlet, createFileRoute } from '@tanstack/react-router'
+import { Link, Navigate, Outlet, createFileRoute } from '@tanstack/react-router'
 
 import {
   HomeIcon,
@@ -54,6 +54,10 @@ export const Route = createFileRoute('/dashboard')({
 })
 
 function LayoutComponent() {
+  if (localStorage.getItem('jwt_token') === null) {
+    return <Navigate to="/auth" />
+  }
+
   return (
     <div className="flex h-dvh">
       <Nav />
