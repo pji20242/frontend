@@ -23,7 +23,6 @@ import { Route as DashboardDevicesIdImport } from './routes/dashboard/devices/$i
 // Create Virtual Routes
 
 const DashboardUsersLazyImport = createFileRoute('/dashboard/users')()
-const DashboardReportsLazyImport = createFileRoute('/dashboard/reports')()
 const DashboardCooperativesLazyImport = createFileRoute(
   '/dashboard/cooperatives',
 )()
@@ -61,14 +60,6 @@ const DashboardUsersLazyRoute = DashboardUsersLazyImport.update({
   getParentRoute: () => DashboardRoute,
 } as any).lazy(() =>
   import('./routes/dashboard/users.lazy').then((d) => d.Route),
-)
-
-const DashboardReportsLazyRoute = DashboardReportsLazyImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => DashboardRoute,
-} as any).lazy(() =>
-  import('./routes/dashboard/reports.lazy').then((d) => d.Route),
 )
 
 const DashboardCooperativesLazyRoute = DashboardCooperativesLazyImport.update({
@@ -131,13 +122,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardCooperativesLazyImport
       parentRoute: typeof DashboardImport
     }
-    '/dashboard/reports': {
-      id: '/dashboard/reports'
-      path: '/reports'
-      fullPath: '/dashboard/reports'
-      preLoaderRoute: typeof DashboardReportsLazyImport
-      parentRoute: typeof DashboardImport
-    }
     '/dashboard/users': {
       id: '/dashboard/users'
       path: '/users'
@@ -181,7 +165,6 @@ declare module '@tanstack/react-router' {
 interface DashboardRouteChildren {
   DashboardHomeRoute: typeof DashboardHomeRoute
   DashboardCooperativesLazyRoute: typeof DashboardCooperativesLazyRoute
-  DashboardReportsLazyRoute: typeof DashboardReportsLazyRoute
   DashboardUsersLazyRoute: typeof DashboardUsersLazyRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardDevicesIdRoute: typeof DashboardDevicesIdRoute
@@ -191,7 +174,6 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardHomeRoute: DashboardHomeRoute,
   DashboardCooperativesLazyRoute: DashboardCooperativesLazyRoute,
-  DashboardReportsLazyRoute: DashboardReportsLazyRoute,
   DashboardUsersLazyRoute: DashboardUsersLazyRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardDevicesIdRoute: DashboardDevicesIdRoute,
@@ -207,7 +189,6 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/home': typeof DashboardHomeRoute
   '/dashboard/cooperatives': typeof DashboardCooperativesLazyRoute
-  '/dashboard/reports': typeof DashboardReportsLazyRoute
   '/dashboard/users': typeof DashboardUsersLazyRoute
   '/auth': typeof AuthIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -219,7 +200,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard/home': typeof DashboardHomeRoute
   '/dashboard/cooperatives': typeof DashboardCooperativesLazyRoute
-  '/dashboard/reports': typeof DashboardReportsLazyRoute
   '/dashboard/users': typeof DashboardUsersLazyRoute
   '/auth': typeof AuthIndexRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -233,7 +213,6 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/home': typeof DashboardHomeRoute
   '/dashboard/cooperatives': typeof DashboardCooperativesLazyRoute
-  '/dashboard/reports': typeof DashboardReportsLazyRoute
   '/dashboard/users': typeof DashboardUsersLazyRoute
   '/auth/': typeof AuthIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -248,7 +227,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard/home'
     | '/dashboard/cooperatives'
-    | '/dashboard/reports'
     | '/dashboard/users'
     | '/auth'
     | '/dashboard/'
@@ -259,7 +237,6 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard/home'
     | '/dashboard/cooperatives'
-    | '/dashboard/reports'
     | '/dashboard/users'
     | '/auth'
     | '/dashboard'
@@ -271,7 +248,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard/home'
     | '/dashboard/cooperatives'
-    | '/dashboard/reports'
     | '/dashboard/users'
     | '/auth/'
     | '/dashboard/'
@@ -315,7 +291,6 @@ export const routeTree = rootRoute
       "children": [
         "/dashboard/home",
         "/dashboard/cooperatives",
-        "/dashboard/reports",
         "/dashboard/users",
         "/dashboard/",
         "/dashboard/devices/$id",
@@ -328,10 +303,6 @@ export const routeTree = rootRoute
     },
     "/dashboard/cooperatives": {
       "filePath": "dashboard/cooperatives.lazy.tsx",
-      "parent": "/dashboard"
-    },
-    "/dashboard/reports": {
-      "filePath": "dashboard/reports.lazy.tsx",
       "parent": "/dashboard"
     },
     "/dashboard/users": {

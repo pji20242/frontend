@@ -1,7 +1,6 @@
 import { Link, Outlet, createFileRoute } from '@tanstack/react-router'
 
 import {
-  ChartNoAxesCombined,
   HomeIcon,
   Router,
   Tractor,
@@ -45,7 +44,6 @@ function Nav() {
         <NavItem label="Cooperativas" icon={Tractor} to="/dashboard/cooperatives" />
         <NavItem label="Usuários" icon={User} to="/dashboard/users" />
         <NavItem label="Dispositivos" icon={Router} to="/dashboard/devices" />
-        <NavItem label="Relatórios" icon={ChartNoAxesCombined} to="/dashboard/reports" />
       </nav>
     </div>
   )
