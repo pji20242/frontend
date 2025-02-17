@@ -1,3 +1,4 @@
+import "@/lib/api";
 import { GoogleOAuthProvider } from "@react-oauth/google"; // Importa o GoogleOAuthProvider
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { StrictMode } from "react";

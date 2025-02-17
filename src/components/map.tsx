@@ -1,5 +1,6 @@
+import axios from 'axios';
+// import L from "leaflet";
 import React from "react";
-import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css"; // Importa os estilos do Leaflet
 
@@ -11,13 +12,13 @@ interface Sensor {
   peso: number;
 }
 
-// Ícone customizado para os marcadores
-const customIcon = new L.Icon({
-  iconUrl: "https://leafletjs.com/examples/custom-icons/leaf-green.png",
-  iconSize: [38, 95],
-  iconAnchor: [22, 94],
-  popupAnchor: [-3, -76],
-});
+// // Ícone customizado para os marcadores
+// const customIcon = new L.Icon({
+//   iconUrl: "https://leafletjs.com/examples/custom-icons/leaf-green.png",
+//   iconSize: [38, 95],
+//   iconAnchor: [22, 94],
+//   popupAnchor: [-3, -76],
+// });
 
 export default function DeviceMap() {
   // Estados para armazenar os sensores, o loading e eventuais erros
@@ -30,20 +31,22 @@ export default function DeviceMap() {
 
   // Busca os dados dos sensores ao montar o componente
   React.useEffect(() => {
-    fetch("/api/v1/map")
+    axios.get<Sensor[]>("/api/v1/map")
       .then((response) => {
-        if (!response.ok) {
-          throw new Error("Falha ao carregar dados dos sensores.");
-        }
-        return response.json();
-      })
-      .then((data: Sensor[]) => {
-        setSensors(data);
+        setSensors(response.data);
         setLoading(false);
       })
-      .catch((err: Error) => {
-        console.error(err);
-        setError(err.message);
+      .catch((err: unknown) => {
+        let errorMessage = "Falha ao carregar dados dos sensores.";
+
+        if (axios.isAxiosError(err)) {
+          errorMessage = err.response?.data?.message || err.message || errorMessage;
+        } else if (err instanceof Error) {
+          errorMessage = err.message;
+        }
+
+        console.error(errorMessage);
+        setError(errorMessage);
         setLoading(false);
       });
   }, []);
@@ -79,7 +82,7 @@ export default function DeviceMap() {
           <Marker
             key={sensor.uuid}
             position={[sensor.latitude, sensor.longitude]}
-            //icon={customIcon}
+          //icon={customIcon}
           >
             <Popup>
               <div>

@@ -35,6 +35,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { createLazyFileRoute } from '@tanstack/react-router'
+import axios from 'axios'
 
 export const Route = createLazyFileRoute('/dashboard/cooperatives')({
   component: Cooperativas,
@@ -53,12 +54,8 @@ export type Cooperativa = {
 
 // API function to fetch cooperatives
 const fetchCooperativas = async (): Promise<Cooperativa[]> => {
-  // Replace this with your actual API endpoint
-  const response = await fetch('/api/v1/cooperativas')
-  if (!response.ok) {
-    throw new Error('Network response was not ok')
-  }
-  return response.json()
+  const response = await axios.get('/api/v1/cooperativas')
+  return response.data
 }
 
 

@@ -10,6 +10,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import axios from 'axios'
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react'
 import * as React from 'react'
 
@@ -50,12 +51,8 @@ export type User = {
 
 // API function to fetch users
 const fetchUsers = async (): Promise<User[]> => {
-  // Replace this with your actual API endpoint
-  const response = await fetch('/api/v1/users')
-  if (!response.ok) {
-    throw new Error('Network response was not ok')
-  }
-  return response.json()
+  const response = await axios.get('/api/v1/users')
+  return response.data
 }
 
 export const columns: ColumnDef<User>[] = [
@@ -162,7 +159,7 @@ export function Users() {
   const table = useReactTable({
     data: users || [], // Use empty array if data is not loaded
     columns,
-    getRowId: (row) => row.matricula.toString(), 
+    getRowId: (row) => row.matricula.toString(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),

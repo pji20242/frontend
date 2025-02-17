@@ -3,17 +3,16 @@ import { createFileRoute } from '@tanstack/react-router'
 import axios from 'axios'
 import * as React from 'react'
 import {
-  LineChart,
-  Line,
   CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
 } from 'recharts'
 
 import { Skeleton } from '@/components/ui/skeleton'
-import { Button } from '@/components/ui/button'
 
 // ===========================
 // Rota
