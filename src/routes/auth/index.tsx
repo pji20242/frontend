@@ -14,6 +14,7 @@ export function LoginComponent() {
 
   const login = useGoogleLogin({
     onSuccess: (codeResponse) => {
+      console.log(codeResponse)
       localStorage.setItem('jwt_token', codeResponse.access_token)
       navigate({ to: '/dashboard' })
     },

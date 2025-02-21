@@ -2,6 +2,7 @@ import { Link, Navigate, Outlet, createFileRoute } from '@tanstack/react-router'
 
 import {
   HomeIcon,
+  LogOut,
   Router,
   Tractor,
   User,
@@ -13,9 +14,10 @@ interface NavItemProps {
   icon: React.ElementType
   label: string
   to: string
+  func?: () => void
 }
 
-function NavItem({ icon: Icon, label, to }: NavItemProps) {
+function NavItem({ icon: Icon, label, to, func }: NavItemProps) {
   return (
     <Link
       to={to}
@@ -27,6 +29,7 @@ function NavItem({ icon: Icon, label, to }: NavItemProps) {
         '[&.active]:text-white',
         'hover:ring-1 ring-blue-950',
       )}
+      onClick={func}
     >
       <Icon className="mr-3 h-5 w-5" />
 
@@ -44,7 +47,9 @@ function Nav() {
         <NavItem label="Cooperativas" icon={Tractor} to="/dashboard/cooperatives" />
         <NavItem label="Usuários" icon={User} to="/dashboard/users" />
         <NavItem label="Dispositivos" icon={Router} to="/dashboard/devices" />
+        <NavItem label="Sair" icon={LogOut} to="/auth" func={() => localStorage.removeItem("jwt_token")} />
       </nav>
+
     </div>
   )
 }
