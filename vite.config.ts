@@ -10,6 +10,9 @@ export default defineConfig({
 			"@": path.resolve(__dirname, "./src"), // Garante que @ resolve corretamente para src/
 		},
 	},
+	preview: {
+		allowedHosts: ["vm0.pji3.sj.ifsc.edu.br"]
+	},
 	server: {
 		host: "localhost", // Garante que funciona localmente
 		port: 5173, // Define a porta do servidor
