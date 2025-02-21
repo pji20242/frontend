@@ -13,12 +13,13 @@ export function LoginComponent() {
   const navigate = useNavigate()
 
   const login = useGoogleLogin({
-    onSuccess: (codeResponse) => {
-      console.log(codeResponse)
-      localStorage.setItem('jwt_token', codeResponse.access_token)
+    onSuccess: (res) => {
+      console.log(res)
+      localStorage.setItem('jwt_token', res.code)
       navigate({ to: '/dashboard' })
     },
     onError: (error) => console.log('Login Failed:', error),
+    flow: "auth-code"
   })
 
   if (localStorage.getItem('jwt_token') !== null) {
