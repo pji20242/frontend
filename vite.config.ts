@@ -11,7 +11,7 @@ export default defineConfig({
 		},
 	},
 	preview: {
-		allowedHosts: ["vm0.pji3.sj.ifsc.edu.br"]
+		allowedHosts: ["vm0.pji3.sj.ifsc.edu.br"],
 	},
 	server: {
 		host: "localhost", // Garante que funciona localmente

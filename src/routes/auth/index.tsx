@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGoogleLogin } from '@react-oauth/google'
 import { Navigate, useNavigate } from "@tanstack/react-router"
 import { createFileRoute } from '@tanstack/react-router'
-
+import axios from 'axios'
 
 export const Route = createFileRoute('/auth/')({
   component: LoginComponent,
@@ -13,10 +13,20 @@ export function LoginComponent() {
   const navigate = useNavigate()
 
   const login = useGoogleLogin({
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
       console.log(res)
-      localStorage.setItem('jwt_token', res.code)
-      navigate({ to: '/dashboard' })
+
+      try {
+        const { data } = await axios.post('/api/v1/auth', {
+          code: res.code
+        })
+
+        localStorage.setItem('jwt_token', data.token)
+
+        navigate({ to: '/dashboard' })
+      } catch (error) {
+        console.error('Login Failed:', error)
+      }
     },
     onError: (error) => console.log('Login Failed:', error),
     flow: "auth-code"
