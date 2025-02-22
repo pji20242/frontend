@@ -1,8 +1,21 @@
 import axios from 'axios';
-// import L from "leaflet";
+import L from "leaflet";
 import React from "react";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css"; // Importa os estilos do Leaflet
+
+// Add these imports for the marker icons
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+// Fix the default icon issue
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
 
 // Interface para tipar os dados dos sensores
 interface Sensor {
