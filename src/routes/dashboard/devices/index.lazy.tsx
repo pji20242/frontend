@@ -57,6 +57,17 @@ export function Devices() {
       device.cooperativa.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
+  // Test function for the button click
+  const handleRegisterDevice = async () => {
+    try {
+      // Just a test fetch to one of the routes
+      const response = await axios.get('/api/v1/mqttusers')
+      console.log('Test response:', response.data)
+    } catch (error) {
+      console.error('Error testing route:', error)
+    }
+  }
+
   // Loading state
   if (isLoading) {
     return (
@@ -79,13 +90,19 @@ export function Devices() {
     <div>
       <h2 className="text-3xl mb-8">Dispositivos</h2>
 
-      <div className="mb-6">
+      <div className="mb-6 flex gap-4 items-center justify-between">
         <Input
           placeholder="Buscar por ID, dono ou cooperativa..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
         />
+        <Button 
+          onClick={handleRegisterDevice}
+          className="bg-green-500 hover:bg-green-600 text-white"
+        >
+          Cadastrar Dispositivo
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
