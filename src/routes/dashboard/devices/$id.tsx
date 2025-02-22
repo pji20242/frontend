@@ -22,15 +22,16 @@ export const Route = createFileRoute('/dashboard/devices/$id')({
 })
 
 // ===========================
-// Mapeamento ID -> Nome do Sensor
+// Mapeamento Tipo -> Nome do Sensor
 // ===========================
-const sensorIdToName: Record<number, string> = {
-  1: 'Temperatura',
-  2: 'Pressão',
-  3: 'Luminosidade',
-  4: 'Umidade',
-  5: 'Corrente',
-  6: 'Tensão',
+const sensorTypeToName: Record<string, string> = {
+  '1': 'Temperatura',
+  '2': 'Pressão Atmosférica',
+  '3': 'Gás Inflamável',
+  '4': 'Fumaça',
+  '5': 'Monóxido de Carbono (CO)',
+  '6': 'Umidade',
+  '7': 'Luminosidade',
 }
 
 // ===========================
@@ -42,11 +43,18 @@ export type SensorReading = {
   valor: number
 }
 
+export type SensorInfo = {
+  id: number
+  uuid: string
+  tipo: string
+  unidade: string
+}
+
 // ===========================
 // Funções de fetch
 // ===========================
-const fetchDeviceReadings = async (deviceId: string): Promise<SensorReading[]> => {
-  const response = await axios.get(`/api/v1/devices/${deviceId}`)
+const fetchDeviceReadings = async (deviceId: string): Promise<SensorInfo[]> => {
+  const response = await axios.get(`/api/v1/sensores/${deviceId}`)
   return response.data
 }
 
@@ -108,7 +116,7 @@ export function DeviceReadings() {
     isLoading: isLoadingDevice,
     isError: isErrorDevice,
     error: errorDevice,
-  } = useQuery<SensorReading[], Error>({
+  } = useQuery<SensorInfo[], Error>({
     queryKey: ['deviceReadingsAll', deviceId],
     queryFn: () => fetchDeviceReadings(deviceId),
   })
@@ -116,10 +124,7 @@ export function DeviceReadings() {
   // Lista de IDs de sensor únicos, extraídos de deviceData
   const availableSensors = React.useMemo(() => {
     if (!deviceData) return []
-    const uniqueSensors = new Set<number>()
-    // biome-ignore lint/complexity/noForEach: <explanation>
-    deviceData.forEach((d) => uniqueSensors.add(d.id_sensor))
-    return Array.from(uniqueSensors)
+    return deviceData.map(sensor => sensor.id)
   }, [deviceData])
 
   // Estado para o sensor selecionado
@@ -203,11 +208,11 @@ export function DeviceReadings() {
             value={selectedSensor}
             onChange={(e) => setSelectedSensor(e.target.value)}
           >
-            {availableSensors.map((idSensor) => {
-              const nomeSensor = sensorIdToName[idSensor] ?? `Sensor ${idSensor}`
+            {deviceData?.map((sensor) => {
+              const nomeSensor = sensorTypeToName[sensor.tipo] ?? `Sensor Tipo ${sensor.tipo}`
               return (
-                <option key={idSensor} value={idSensor}>
-                  {nomeSensor} (ID: {idSensor})
+                <option key={sensor.id} value={sensor.id}>
+                  {nomeSensor}
                 </option>
               )
             })}
