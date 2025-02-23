@@ -272,7 +272,7 @@ export function DeviceReadings() {
                 type="monotone"
                 dataKey="valor"
                 stroke="#8884d8"
-                activeDot={{ r: 8 }}
+                dot={false}
               />
             </LineChart>
           </ResponsiveContainer>
