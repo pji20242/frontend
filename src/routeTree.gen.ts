@@ -14,6 +14,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as DashboardImport } from './routes/dashboard'
+import { Route as LayoutImport } from './routes/_layout'
 import { Route as IndexImport } from './routes/index'
 import { Route as DashboardIndexImport } from './routes/dashboard/index'
 import { Route as AuthIndexImport } from './routes/auth/index'
@@ -33,6 +34,11 @@ const DashboardDevicesIndexLazyImport = createFileRoute('/dashboard/devices/')()
 const DashboardRoute = DashboardImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LayoutRoute = LayoutImport.update({
+  id: '/_layout',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -99,6 +105,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/_layout': {
+      id: '/_layout'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof LayoutImport
       parentRoute: typeof rootRoute
     }
     '/dashboard': {
@@ -186,6 +199,7 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '': typeof LayoutRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/home': typeof DashboardHomeRoute
   '/dashboard/cooperatives': typeof DashboardCooperativesLazyRoute
@@ -198,6 +212,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '': typeof LayoutRoute
   '/dashboard/home': typeof DashboardHomeRoute
   '/dashboard/cooperatives': typeof DashboardCooperativesLazyRoute
   '/dashboard/users': typeof DashboardUsersLazyRoute
@@ -210,6 +225,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/_layout': typeof LayoutRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/home': typeof DashboardHomeRoute
   '/dashboard/cooperatives': typeof DashboardCooperativesLazyRoute
@@ -224,6 +240,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | ''
     | '/dashboard'
     | '/dashboard/home'
     | '/dashboard/cooperatives'
@@ -235,6 +252,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | ''
     | '/dashboard/home'
     | '/dashboard/cooperatives'
     | '/dashboard/users'
@@ -245,6 +263,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_layout'
     | '/dashboard'
     | '/dashboard/home'
     | '/dashboard/cooperatives'
@@ -258,12 +277,14 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LayoutRoute: typeof LayoutRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   AuthIndexRoute: typeof AuthIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LayoutRoute: LayoutRoute,
   DashboardRoute: DashboardRouteWithChildren,
   AuthIndexRoute: AuthIndexRoute,
 }
@@ -279,12 +300,16 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/_layout",
         "/dashboard",
         "/auth/"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/_layout": {
+      "filePath": "_layout.tsx"
     },
     "/dashboard": {
       "filePath": "dashboard.tsx",
