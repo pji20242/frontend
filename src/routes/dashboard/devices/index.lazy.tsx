@@ -112,6 +112,17 @@ async function makeHash(password: string): Promise<string> {
   return `PBKDF2$${HASH_FUNCTION}$${COST_FACTOR}$${salt}$${hash}`
 }
 
+// Define sensor types
+const SENSOR_TYPES = [
+  'Temperatura',
+  'Pressão Atmosférica',
+  'Gás Inflamável',
+  'Fumaça',
+  'Monóxido de Carbono (CO)',
+  'Umidade',
+  'Luminosidade'
+] as const
+
 export function Devices() {
   const [searchTerm, setSearchTerm] = React.useState('')
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
@@ -421,12 +432,19 @@ export function Devices() {
                   </div>
                   {formData.sensors.map((sensor, index) => (
                     <div key={index} className="flex gap-2">
-                      <Input
+                      <select
                         value={sensor}
                         onChange={(e) => handleSensorChange(index, e.target.value)}
-                        placeholder={`Sensor ${index + 1}`}
+                        className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2"
                         required
-                      />
+                      >
+                        <option value="">Selecione um tipo de sensor</option>
+                        {SENSOR_TYPES.map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ))}
+                      </select>
                       {formData.sensors.length > 1 && (
                         <Button
                           type="button"
