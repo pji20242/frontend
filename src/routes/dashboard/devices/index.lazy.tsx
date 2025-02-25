@@ -69,6 +69,64 @@ interface User {
   licencas: number
 }
 
+// Constants for PBKDF2 (matching Python script)
+const SALT_LENGTH = 12
+const KEY_LENGTH = 24
+const HASH_FUNCTION = 'sha256'
+const COST_FACTOR = 10000
+
+// Utility functions for base64
+const base64ToArrayBuffer = (base64: string) => {
+  const binaryString = window.atob(base64)
+  const bytes = new Uint8Array(binaryString.length)
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i)
+  }
+  return bytes
+}
+
+const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
+  const binary = String.fromCharCode(...new Uint8Array(buffer))
+  return window.btoa(binary)
+}
+
+// Password hashing function
+async function makeHash(password: string): Promise<string> {
+  // Generate random salt and encode it directly to base64
+  const rawSalt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH))
+  const salt = btoa(String.fromCharCode(...rawSalt))
+
+  // Convert password to bytes
+  const encoder = new TextEncoder()
+  const passwordBytes = encoder.encode(password)
+
+  // Generate key using PBKDF2
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    passwordBytes,
+    'PBKDF2',
+    false,
+    ['deriveBits']
+  )
+
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: rawSalt, // Use raw salt bytes for hashing
+      iterations: COST_FACTOR,
+      hash: 'SHA-256'
+    },
+    keyMaterial,
+    KEY_LENGTH * 8
+  )
+
+  // Convert the derived key to base64
+  const hash = btoa(String.fromCharCode(...new Uint8Array(derivedBits)))
+
+  // Format: PBKDF2$sha256$iterations$salt$hash
+  return `PBKDF2$${HASH_FUNCTION}$${COST_FACTOR}$${salt}$${hash}`
+}
+
 export function Devices() {
   const [searchTerm, setSearchTerm] = React.useState('')
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
@@ -158,10 +216,10 @@ export function Devices() {
     }))
   }
 
-  // Generate random password
+  // Generate random password (only letters and numbers)
   const generatePassword = () => {
     const length = 12
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
     let password = ''
     for (let i = 0; i < length; i++) {
       const randomIndex = Math.floor(Math.random() * charset.length)
@@ -180,35 +238,36 @@ export function Devices() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Generate password
-    const password = generatePassword()
-    
-    // Validate UUID or generate a new one
-    let finalUUID = formData.uuid
-    if (!formData.uuid || !isValidUUID(formData.uuid)) {
-      finalUUID = uuidv4()
-      toast.info('UUID inválido ou não fornecido. Um novo UUID foi gerado.')
-    }
-    
     try {
-      // First API call - Register MQTT user with UUID as username
+      // Generate password and hash it
+      const password = generatePassword()
+      const hashedPassword = await makeHash(password)
+      
+      // Validate UUID or generate a new one
+      let finalUUID = formData.uuid
+      if (!formData.uuid || !isValidUUID(formData.uuid)) {
+        finalUUID = uuidv4()
+        toast.info('UUID inválido ou não fornecido. Um novo UUID foi gerado.')
+      }
+      
+      // First API call - Register MQTT user with UUID as username and hashed password
       await axios.post('/api/v1/mqttusers', {
         username: finalUUID,
-        password: password,
+        password: hashedPassword, // Send hashed password
         mosquitto_super: true
       })
 
-      // Second API call - Register MQTT ACL with UUID as username
+      // Second API call - Register MQTT ACL
       await axios.post('/api/v1/mqttacls', {
         username: finalUUID,
         topic: 'pji3',
         rw: 1
       })
 
-      // Store the registration result
+      // Store the registration result with plain password (for user to see)
       setRegistrationResult({
         username: finalUUID,
-        password: password,
+        password: password, // Show plain password to user
         uuid: finalUUID
       })
 
