@@ -47,7 +47,7 @@ const fetchDevices = async (): Promise<Device[]> => {
 }
 
 interface DeviceRegistrationForm {
-  username: string
+  user: string
   uuid: string
   latitude: number
   longitude: number
@@ -74,7 +74,7 @@ export function Devices() {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
   const [registrationResult, setRegistrationResult] = React.useState<RegistrationResult | null>(null)
   const [formData, setFormData] = React.useState<DeviceRegistrationForm>({
-    username: '',
+    user: '',
     uuid: '',
     latitude: 0,
     longitude: 0,
@@ -191,23 +191,23 @@ export function Devices() {
     }
     
     try {
-      // First API call - Register MQTT user
+      // First API call - Register MQTT user with UUID as username
       await axios.post('/api/v1/mqttusers', {
-        username: formData.username,
+        username: finalUUID,
         password: password,
         mosquitto_super: true
       })
 
-      // Second API call - Register MQTT ACL
+      // Second API call - Register MQTT ACL with UUID as username
       await axios.post('/api/v1/mqttacls', {
-        username: formData.username,
+        username: finalUUID,
         topic: 'pji3',
         rw: 1
       })
 
       // Store the registration result
       setRegistrationResult({
-        username: formData.username,
+        username: finalUUID,
         password: password,
         uuid: finalUUID
       })
@@ -215,7 +215,7 @@ export function Devices() {
       toast.success('Dispositivo cadastrado com sucesso')
       setIsDialogOpen(false)
       setFormData({
-        username: '',
+        user: '',
         uuid: '',
         latitude: 0,
         longitude: 0,
@@ -286,13 +286,13 @@ export function Devices() {
             <form onSubmit={handleSubmit}>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="username" className="text-right">
+                  <Label htmlFor="user" className="text-right">
                     Usuário
                   </Label>
                   <select
-                    id="username"
-                    name="username"
-                    value={formData.username}
+                    id="user"
+                    name="user"
+                    value={formData.user}
                     onChange={handleInputChange}
                     className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
                     required
@@ -416,12 +416,12 @@ export function Devices() {
           <DialogHeader>
             <DialogTitle>Dispositivo Cadastrado com Sucesso!</DialogTitle>
             <DialogDescription>
-              Guarde estas informações em um local seguro:
+              Guarde estas informações em um local seguro. O UUID será usado como nome de usuário para conexão MQTT:
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Usuário:</Label>
+              <Label className="text-right">Username (UUID):</Label>
               <div className="col-span-3 font-mono bg-gray-100 p-2 rounded">
                 {registrationResult?.username}
               </div>
@@ -430,12 +430,6 @@ export function Devices() {
               <Label className="text-right">Senha:</Label>
               <div className="col-span-3 font-mono bg-gray-100 p-2 rounded">
                 {registrationResult?.password}
-              </div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">UUID:</Label>
-              <div className="col-span-3 font-mono bg-gray-100 p-2 rounded">
-                {registrationResult?.uuid}
               </div>
             </div>
           </div>
