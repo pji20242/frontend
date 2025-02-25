@@ -75,21 +75,6 @@ const KEY_LENGTH = 24
 const HASH_FUNCTION = 'sha256'
 const COST_FACTOR = 10000
 
-// Utility functions for base64
-const base64ToArrayBuffer = (base64: string) => {
-  const binaryString = window.atob(base64)
-  const bytes = new Uint8Array(binaryString.length)
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i)
-  }
-  return bytes
-}
-
-const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
-  const binary = String.fromCharCode(...new Uint8Array(buffer))
-  return window.btoa(binary)
-}
-
 // Password hashing function
 async function makeHash(password: string): Promise<string> {
   // Generate random salt and encode it directly to base64
@@ -112,7 +97,7 @@ async function makeHash(password: string): Promise<string> {
   const derivedBits = await crypto.subtle.deriveBits(
     {
       name: 'PBKDF2',
-      salt: rawSalt, // Use raw salt bytes for hashing
+      salt: rawSalt,
       iterations: COST_FACTOR,
       hash: 'SHA-256'
     },
