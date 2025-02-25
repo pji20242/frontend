@@ -54,6 +54,22 @@ interface DeviceRegistrationForm {
   sensors: string[]
 }
 
+interface SensorPayload {
+  uuid: string
+  tipo: string
+  unidade: string
+}
+
+interface DevicePayload {
+  uuid: string
+  hardware_version: string
+  firmware_version: string
+  latitude: number
+  longitude: number
+  peso: number
+  altitude: number
+}
+
 interface RegistrationResult {
   username: string
   password: string
@@ -181,7 +197,7 @@ export function Devices() {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: name === 'latitude' || name === 'longitude' ? Number(value) : value
     }))
   }
 
@@ -246,28 +262,54 @@ export function Devices() {
         toast.info('UUID inválido ou não fornecido. Um novo UUID foi gerado.')
       }
       
-      // First API call - Register MQTT user with UUID as username and hashed password
+      // 1. Register MQTT user
       await axios.post('/api/v1/mqttusers', {
         username: finalUUID,
-        password: hashedPassword, // Send hashed password
+        password: hashedPassword,
         mosquitto_super: true
       })
 
-      // Second API call - Register MQTT ACL
+      // 2. Register MQTT ACL
       await axios.post('/api/v1/mqttacls', {
         username: finalUUID,
         topic: 'pji3',
         rw: 1
       })
 
-      // Store the registration result with plain password (for user to see)
+      // 3. Register Device - ensure all numbers are sent as numbers
+      const devicePayload: DevicePayload = {
+        uuid: finalUUID,
+        hardware_version: "1",
+        firmware_version: "1",
+        latitude: Number(formData.latitude),
+        longitude: Number(formData.longitude),
+        peso: 3,
+        altitude: 3
+      }
+      await axios.post('/api/v1/devices', devicePayload) // Also fixed the endpoint from device to devices
+
+      // 4. Register each sensor
+      const sensorPromises = formData.sensors
+        .filter(sensor => sensor !== '')
+        .map(sensorType => {
+          const sensorPayload: SensorPayload = {
+            uuid: finalUUID,
+            tipo: sensorType,
+            unidade: 'T'
+          }
+          return axios.post('/api/v1/sensores', sensorPayload)
+        })
+
+      await Promise.all(sensorPromises)
+
+      // Store the registration result
       setRegistrationResult({
         username: finalUUID,
-        password: password, // Show plain password to user
+        password: password,
         uuid: finalUUID
       })
 
-      toast.success('Dispositivo cadastrado com sucesso')
+      toast.success('Dispositivo e sensores cadastrados com sucesso')
       setIsDialogOpen(false)
       setFormData({
         user: '',
@@ -278,7 +320,9 @@ export function Devices() {
       })
     } catch (error) {
       console.error('Error registering device:', error)
-      toast.error('Falha ao cadastrar dispositivo')
+      toast.error('Falha ao cadastrar dispositivo ou sensores')
+      
+      // You might want to add cleanup logic here in case of partial success
     }
   }
 
